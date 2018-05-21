@@ -34,8 +34,8 @@ $ kubectl plugin sample example-foo
 RESOURCE     DEPLOYMENT_NAME  REPLICAS            AVAILABLE_REPLICAS
 example-foo  example-foo      1                   1
 
-kubectl plugin sample example-foo-
+$ kubectl plugin sample example-foo-
 RESOURCE        DEPLOYMENT_NAME     REPLICAS            AVAILABLE_REPLICAS
-example-foo-01  example-foo-01      2                   0
+example-foo-01  example-foo-01      2                   2
 example-foo-02  dep-example-foo-02  1                   0
 ```
