@@ -7,7 +7,7 @@ This is a very basic example of a Kubernetes Plugin.
 The plugin displays the Foo custom resources (as seen in the k8s.io/sample-contoller) with deployment, replicas and available replicas, similar to the `get deployments` command's output.
 
 ## Implementation
-This might not be the best way to implement the required functionality, parsing the plain text output of other commands, but it does show how to use options (namespace) and command arguments (resrouce name prefix).
+This might not be the best way to implement the required functionality, parsing the plain text output of other commands, but it does show how to use options (namespace) and command arguments (resource name prefix).
 
 Probably a nicer implementation would be to use the JSON output.
 
