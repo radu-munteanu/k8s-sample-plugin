@@ -14,7 +14,7 @@ Probably a nicer implementation would be to use the JSON output.
 ## Installation
 ```bash
 # install
-wget -O k8s-sample-plugin.zip https://github.com/radu-munteanu/k8s-sample-plugin/archive/master.zip && unzip -o k8s-sample-plugin.zip && cp -rf k8s-sample-plugin-master/plugins/sample/* ~/.kube/plugins/sample && chmod +x ~/.kube/plugins/sample/sample && printf "Success!\n"
+wget -O k8s-sample-plugin.zip https://github.com/radu-munteanu/k8s-sample-plugin/archive/master.zip && unzip -o k8s-sample-plugin.zip && cp -rf k8s-sample-plugin-master/plugins/sample/* ~/.kube/plugins/sample && chmod +x ~/.kube/plugins/sample/sample && printf 'Success!\n'
 # source cleanup
 rm -rf k8s-sample-plugin-master
 rm -f k8s-sample-plugin.zip
