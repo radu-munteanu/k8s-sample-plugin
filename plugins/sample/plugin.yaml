@@ -1,0 +1,5 @@
+name: "sample"
+shortDesc: "Sample Foo Custom Resource Plugin"
+longDesc: "This is an sample plugin that displays in a friendly format the information of Foo custom resources defined as in the k8s.io/sample-contoller"
+example: "kubectl plugin sample\nkubectl plugin sample example-foo"
+command: "./sample"
