@@ -4,10 +4,10 @@ PARAMS=( "$@" )
 PARAMS_NO=$#
 
 function run_plugin() {
-  local resource_name_prefix_filter=""
-  if [ $PARAMS_NO -gt 0 ]; then
-     resource_name_prefix_filter="${PARAMS[0]}"
-  fi
+  #local resource_name_prefix_filter=""
+  #if [ $PARAMS_NO -gt 0 ]; then
+  #   resource_name_prefix_filter="${PARAMS[0]}"
+  #fi
 
   local content=""
   local exit_code=0
@@ -16,16 +16,16 @@ function run_plugin() {
   # kubectl commands usually switch to default namespace, but custom plugins don't come with the --all-namespaces option
   # and we'd lose this option or write a lot more code to get a custom flag
   local namespace_option='--all-namespaces'
-  if [ "${KUBECTL_PLUGINS_CURRENT_NAMESPACE}" != "" ]; then
-    namespace_option="--namespace \"${KUBECTL_PLUGINS_CURRENT_NAMESPACE}\""
-  fi
+  #if [ "${KUBECTL_PLUGINS_CURRENT_NAMESPACE}" != '' ]; then
+  #  namespace_option="--namespace \"${KUBECTL_PLUGINS_CURRENT_NAMESPACE}\""
+  #fi
 
   local filter_option=''
-  if [ "${resource_name_prefix_filter}" != "" ]; then
-    filter_option=" \"${resource_name_prefix_filter}\""
-  fi
+  #if [ "${resource_name_prefix_filter}" != '' ] && [ "${namespace_option}" != '--all-namespaces' ]; then
+  #  filter_option=" \"${resource_name_prefix_filter}\""
+  #fi
 
-  command="kubectl ${namespace_option} describe Foo${filter_option}"
+  command="kubectl describe ${namespace_option} Foo${filter_option}"
 
   # eval used for dynamic params that may or may not have values with spaces (requiring double quotes) like namespace_option
   content=$(eval "${command}" 2>&1)
@@ -46,23 +46,23 @@ function run_plugin() {
   local rlen=${#header_resource}        # minimum column width for Foo resource name
   local dlen=${#header_deployment_name} # minimum column width for deployment name
 
-  while read line || [ "${description}" != "" ]; do
-    if [ "${line}" == "" ]; then # if we're at the end of a resource description, process the information ...
-      if [ $(printf "%s" "${description}" | sed 's/\n//g' | wc -c) -gt 0 ]; then # ... but skip empty info
-        local resource_name=$(printf "%s" "${description}" | grep -E "^Name:" | cut -d: -f2 | sed 's/ //g')
-        local deployment_name=$(printf "%s" "${description}" | grep -E "^Deployment Name:" | cut -d: -f2 | sed 's/ //g')
-        local replicas=$(printf "%s" "${description}" | grep -E '^Replicas:' | cut -d: -f2 | sed 's/ //g')
-        local available_replicas=$(printf "%s" "${description}" | grep -E "^Available Replicas:" | cut -d: -f2 | sed 's/ //g')
+  while read line || [ "${description}" != '' ]; do
+    if [ "${line}" == '' ]; then # if we're at the end of a resource description, process the information ...
+      if [ $(printf '%s' "${description}" | sed 's/\n//g' | wc -c) -gt 0 ]; then # ... but skip empty info
+        local resource_name=$(printf '%s' "${description}" | grep -E "^Name:" | cut -d: -f2 | sed 's/ //g')
+        local deployment_name=$(printf '%s' "${description}" | grep -E "^Deployment Name:" | cut -d: -f2 | sed 's/ //g')
+        local replicas=$(printf '%s' "${description}" | grep -E '^Replicas:' | cut -d: -f2 | sed 's/ //g')
+        local available_replicas=$(printf '%s' "${description}" | grep -E "^Available Replicas:" | cut -d: -f2 | sed 's/ //g')
 
         # package what we need for later use
         resources=$(printf "${resources}\n%s:%s:%d:%d" "${resource_name}" "${deployment_name}" $replicas $available_replicas)
 
         # update column widths, if needed
-        res_len=$(printf "%s" "${resource_name}" | wc -c)
+        res_len=$(printf '%s' "${resource_name}" | wc -c)
         if [ $res_len -gt $rlen ]; then
           rlen=$[$res_len]
         fi
-        dep_len=$(printf "%s" "${deployment_name}" | wc -c)
+        dep_len=$(printf '%s' "${deployment_name}" | wc -c)
         if [ $dep_len -gt $dlen ]; then
           dlen=$[$dep_len]
         fi
@@ -71,9 +71,9 @@ function run_plugin() {
       fi
       description=""
     else
-      description=$(printf "%s\n%s" "${description}" "${line}")
+      description=$(printf '%s\n%s' "${description}" "${line}")
     fi
-  done < <(printf "%s\n" "${content}"; /bin/true)
+  done < <(printf '%s\n' "${content}"; /bin/true)
 
   # width for columns with numbers:
   # we presume we won't have more than 18 digit number of replicas, 18 is the length of the available replicas header
@@ -82,16 +82,17 @@ function run_plugin() {
 
   printf "${p_format}" "${header_resource}" "${header_deployment_name}" "${header_replicas}" "${header_available_replicas}"
   while read res; do
-    if [ "${res}" != "" ]; then
-      local resource_name=$(printf "%s" "${res}" | cut -d: -f1)
-      local deployment_name=$(printf "%s" "${res}" | cut -d: -f2)
-      local replicas=$(printf "%s" "${res}" | cut -d: -f3)
-      local available_replicas=$(printf "%s" "${res}" | cut -d: -f4)
+    if [ "${res}" != '' ]; then
+      local resource_name=$(printf '%s' "${res}" | cut -d: -f1)
+      local deployment_name=$(printf '%s' "${res}" | cut -d: -f2)
+      local replicas=$(printf '%s' "${res}" | cut -d: -f3)
+      local available_replicas=$(printf '%s' "${res}" | cut -d: -f4)
 
       printf "${p_format}" "${resource_name}" "${deployment_name}" $replicas $available_replicas
     fi
-  done < <(printf "%s\n" "${resources}"; /bin/true)
+  done < <(printf '%s\n' "${resources}"; /bin/true)
 }
 
 # Main
 run_plugin
+
