@@ -8,7 +8,7 @@ The plugin displays the Foo custom resources (as seen in the k8s.io/sample-conto
 
 ### Current Version
 
-In Kubernetes 1.12 release, a few changes took place in kubectl that require some logic to be added in the plugin to make the namespaces and name filters work properly. The current version of the plugin shows all the Foo resources across all namespaces and ignores any name filters.
+The current version of the plugin shows all the Foo resources across all namespaces.
 
 ## Installation
 ```bash
@@ -23,21 +23,29 @@ sudo rm -f /usr/local/bin/kubectl-sample
 
 ## Use Case Examples
 ```bash
+# the resources in the example below can be found in this repo, inside resources directory
+
+$ kubectl create -f "resources/crd.yaml"
+customresourcedefinition.apiextensions.k8s.io/foos.samplecontroller.k8s.io created
+
+# optional: start sample controller in order to update these resources
+
+$ kubectl create namespace sample-namespace
+namespace/sample-namespace created
+
+$ kubectl create -f "resources/example-foo-01.yaml"
+foo.samplecontroller.k8s.io/example-foo-01 created
+
+$ kubectl create -f "resources/example-foo-02.yaml"
+foo.samplecontroller.k8s.io/example-foo-02 created
+
+$ kubectl create -f "resources/example-foo-03.yaml" --namespace sample-namespace
+foo.samplecontroller.k8s.io/example-foo-03 created
+
 $ kubectl sample
-RESOURCE        DEPLOYMENT_NAME     REPLICAS            AVAILABLE_REPLICAS
-example-foo     example-foo         1                   1
-example-foo-01  example-foo-01      2                   2
-example-foo-02  dep-example-foo-02  1                   0
-example-foo-03  example-foo-03      2                   0
-
-# doesn't work yet
-$ kubectl sample example-foo
-RESOURCE     DEPLOYMENT_NAME  REPLICAS            AVAILABLE_REPLICAS
-example-foo  example-foo      1                   1
-
-# doesn't work yet
-$ kubectl sample example-foo-
-RESOURCE        DEPLOYMENT_NAME     REPLICAS            AVAILABLE_REPLICAS
-example-foo-01  example-foo-01      2                   2
-example-foo-02  dep-example-foo-02  1                   0
+NAMESPACE         RESOURCE        DEPLOYMENT_NAME     REPLICAS            AVAILABLE_REPLICAS
+default           example-foo-01  example-foo-01      2                   2                 
+default           example-foo-02  dep-example-foo-02  1                   1                 
+sample-namespace  example-foo-03  example-foo-03      2                   0                 
 ```
+

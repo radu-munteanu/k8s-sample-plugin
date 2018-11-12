@@ -4,31 +4,10 @@ PARAMS=( "$@" )
 PARAMS_NO=$#
 
 function run_plugin() {
-  #local resource_name_prefix_filter=""
-  #if [ $PARAMS_NO -gt 0 ]; then
-  #   resource_name_prefix_filter="${PARAMS[0]}"
-  #fi
-
   local content=""
   local exit_code=0
 
-  # namespacing:
-  # kubectl commands usually switch to default namespace, but custom plugins don't come with the --all-namespaces option
-  # and we'd lose this option or write a lot more code to get a custom flag
-  local namespace_option='--all-namespaces'
-  #if [ "${KUBECTL_PLUGINS_CURRENT_NAMESPACE}" != '' ]; then
-  #  namespace_option="--namespace \"${KUBECTL_PLUGINS_CURRENT_NAMESPACE}\""
-  #fi
-
-  local filter_option=''
-  #if [ "${resource_name_prefix_filter}" != '' ] && [ "${namespace_option}" != '--all-namespaces' ]; then
-  #  filter_option=" \"${resource_name_prefix_filter}\""
-  #fi
-
-  command="kubectl get Foo${filter_option} --output=jsonpath='{range .items[*]}{.metadata.name}{\"\n\"}{.spec.deploymentName}{\"\n\"}{.spec.replicas}{\"\n\"}{.status.availableReplicas}{\"\n\"}{end}' ${namespace_option}"
-
-  # eval used for dynamic params that may or may not have values with spaces (requiring double quotes) like namespace_option
-  content=$(eval "${command}" 2>&1)
+  content=$(kubectl get Foo --output=jsonpath='{range .items[*]}{.metadata.namespace}{"\n"}{.metadata.name}{"\n"}{.spec.deploymentName}{"\n"}{.spec.replicas}{"\n"}{.status.availableReplicas}{"\n"}{end}' --all-namespaces 2>&1)
   exit_code=$?
 
   if [ $exit_code -ne 0 ]; then
@@ -36,53 +15,60 @@ function run_plugin() {
     exit $exit_code
   fi
 
-  local header_resource="RESOURCE"
-  local header_deployment_name="DEPLOYMENT_NAME"
-  local header_replicas="REPLICAS"
-  local header_available_replicas="AVAILABLE_REPLICAS"
+  local header_namespace='NAMESPACE'
+  local header_resource='RESOURCE'
+  local header_deployment_name='DEPLOYMENT_NAME'
+  local header_replicas='REPLICAS'
+  local header_available_replicas='AVAILABLE_REPLICAS'
 
   local resources=""
+  local nlen=${#header_namespace}       # minimum column width for namespace
   local rlen=${#header_resource}        # minimum column width for Foo resource name
   local dlen=${#header_deployment_name} # minimum column width for deployment name
 
-
+  local namespace=""
   local resource_name=""
   local deployment_name=""
   local replicas=0
   local available_replicas=0
-  while read resource_name; read deployment_name; read replicas; read available_replicas; do
+  while read namespace; read resource_name; read deployment_name; read replicas; read available_replicas; do
     # package what we need for later use
-    resources=$(printf "${resources}\n%s:%s:%d:%d" "${resource_name}" "${deployment_name}" $replicas $available_replicas)
+    resources=$(printf "${resources}\n%s:%s:%s:%d:%d" "${namespace}" "${resource_name}" "${deployment_name}" $replicas $available_replicas)
 
     # update column widths, if needed
+    ns_len=$(printf '%s' "${namespace}" | wc -c)
+    if [ $ns_len -gt $nlen ]; then
+      nlen=$ns_len
+    fi
     res_len=$(printf '%s' "${resource_name}" | wc -c)
     if [ $res_len -gt $rlen ]; then
-      rlen=$[$res_len]
+      rlen=$res_len
     fi
     dep_len=$(printf '%s' "${deployment_name}" | wc -c)
     if [ $dep_len -gt $dlen ]; then
-      dlen=$[$dep_len]
+      dlen=$dep_len
     fi
   done < <(printf '%s\n' "${content}"; /bin/true)
 
   # width for columns with numbers:
   # we presume we won't have more than 18 digit number of replicas, 18 is the length of the available replicas header
-  local p_format="%-${rlen}s  %-${dlen}s  %-18s  %-18s\n"
+  local p_format="%-${nlen}s  %-${rlen}s  %-${dlen}s  %-18s  %-18s\n"
 
 
-  printf "${p_format}" "${header_resource}" "${header_deployment_name}" "${header_replicas}" "${header_available_replicas}"
+  printf "${p_format}" "${header_namespace}" "${header_resource}" "${header_deployment_name}" "${header_replicas}" "${header_available_replicas}"
   while read res; do
     if [ "${res}" != '' ]; then
-      local resource_name=$(printf '%s' "${res}" | cut -d: -f1)
-      local deployment_name=$(printf '%s' "${res}" | cut -d: -f2)
-      local replicas=$(printf '%s' "${res}" | cut -d: -f3)
-      local available_replicas=$(printf '%s' "${res}" | cut -d: -f4)
+      local namespace=$(printf '%s' "${res}" | cut -d: -f1)
+      local resource_name=$(printf '%s' "${res}" | cut -d: -f2)
+      local deployment_name=$(printf '%s' "${res}" | cut -d: -f3)
+      local replicas=$(printf '%s' "${res}" | cut -d: -f4)
+      local available_replicas=$(printf '%s' "${res}" | cut -d: -f5)
 
-      printf "${p_format}" "${resource_name}" "${deployment_name}" $replicas $available_replicas
+      printf "${p_format}" "${namespace}" "${resource_name}" "${deployment_name}" $replicas $available_replicas
     fi
   done < <(printf '%s\n' "${resources}"; /bin/true)
 }
 
 # Main
 run_plugin
-
+ 
