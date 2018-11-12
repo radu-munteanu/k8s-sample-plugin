@@ -11,8 +11,15 @@ The plugin displays the Foo custom resources (as seen in the k8s.io/sample-conto
 In Kubernetes 1.12 release, a few changes took place in kubectl that require some logic to be added in the plugin to make the namespaces and name filters work properly. The current version of the plugin shows all the Foo resources across all namespaces and ignores any name filters.
 
 ## Installation
+#### Dependencies
 ```bash
-# install
+# install dependencies
+sudo apt install -y jq || sudo apt-get install -y jq || sudo dnf install -y jq || sudo yum install -y jq
+```
+
+#### Plugin
+```bash
+# install plugin
 wget -O k8s-sample-plugin.zip https://gitlab.com/radu-munteanu/k8s-sample-plugin/-/archive/master/k8s-sample-plugin-master.zip && unzip -o k8s-sample-plugin.zip && sudo cp -f k8s-sample-plugin-master/kubectl-sample /usr/local/bin && sudo chmod +x /usr/local/bin/kubectl-sample && printf 'Success!\n'
 # source cleanup
 rm -rf k8s-sample-plugin-master
